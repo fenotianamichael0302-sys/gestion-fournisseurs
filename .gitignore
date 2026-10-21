@@ -1,0 +1,31 @@
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Django
+staticfiles/
+backend/staticfiles/
+media/
+*.log
+
+# Bases de données et sauvegardes
+*.sqlite3
+*.sql
+backups/
+
+# React / Node.js
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# IDE
+.vscode/
