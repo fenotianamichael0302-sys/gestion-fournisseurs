@@ -1,8 +1,10 @@
 """Configuration Django pilotée par les variables d'environnement."""
+
 from datetime import timedelta
 from pathlib import Path
 
 import environ
+import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 
 
@@ -21,7 +23,10 @@ if not SECRET_KEY:
     )
 
 DEBUG = env.bool("DEBUG", default=False)
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=["localhost", "127.0.0.1"],
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -76,20 +81,41 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": env.str("DB_NAME", default="supplier_management"),
-        "USER": env.str("DB_USER", default="supplier_app"),
-        "PASSWORD": env.str("DB_PASSWORD", default=""),
-        "HOST": env.str("DB_HOST", default="127.0.0.1"),
-        "PORT": env.str("DB_PORT", default="3307"),
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+
+# PostgreSQL sur Render si DATABASE_URL existe ;
+# sinon, conserver MySQL pour le développement local.
+DATABASE_URL = env.str("DATABASE_URL", default="").strip()
+
+if env.str("DATABASE_URL", default=""):
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=env.str("DATABASE_URL"),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": env.str(
+                "DB_NAME",
+                default="supplier_management",
+            ),
+            "USER": env.str(
+                "DB_USER",
+                default="supplier_app",
+            ),
+            "PASSWORD": env.str("DB_PASSWORD", default=""),
+            "HOST": env.str("DB_HOST", default="127.0.0.1"),
+            "PORT": env.str("DB_PORT", default="3307"),
+            "OPTIONS": {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
+    }
+
 
 AUTH_USER_MODEL = "accounts.User"
 
